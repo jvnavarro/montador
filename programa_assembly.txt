@@ -1,0 +1,33 @@
+num1 SPACE 1
+num2 SPACE 1
+num3 SPACE 1
+loop1 RW num1
+RW num2
+LDR num1
+ADD num2
+STR num3
+PW num3
+JEQ loop1
+loop2 RW num1
+RW num2
+LDR num1
+MUL num2
+STR num3
+PW num3
+JGT loop2
+loop3 RW num1
+RW num2
+LDR num1
+DIV num2
+STR num3
+PW num3
+JMP loop4
+STOP
+loop4 RW num1
+RW num2
+LDR num1 
+SUB num2 
+STR num3 
+PW num3
+JLT loop4 
+STOP 
