@@ -36,17 +36,64 @@ typedef struct tabelaSimbolos
     int endereco;
     string nome;
 }tipoTabelaSimbolos;
-
 typedef struct tabelaInstrucoes
 {
     int codigo;
     string nome;
 }tipoTabelaInstrucoes;
-
+//Variaveis globais
 tipoTabelaInstrucoes tabelaInst[13];
 tipoTabelaSimbolos tabelaSimbolos[50];
 int contadorAreaDados = 0, contadorIndiceTabSimbolos = 0, contadorNumVariaveis = 0;
+bool verifica_se_eh_inst(string string);
+void print_tabela_simbolos();
+void escrever_arq(int codigo, int end);
+int retorna_end_var(string string);
+int retorna_codigo_inst(string string);
+bool verifica_var_ja_existe(string string);
+void construir_tabela();
+void gerar_codigo();
+void primeira_passagem();
+void segunda_passagem();
+void carrega_tabela_inst();
+int main(int argc, char *argv[])
+{
 
+    carrega_tabela_inst();
+    primeira_passagem();
+    segunda_passagem();
+
+    return 0;
+}
+void carrega_tabela_inst()
+{
+    tabelaInst[0].codigo = 0;
+    tabelaInst[0].nome = "LDR";
+    tabelaInst[1].codigo = 1;
+    tabelaInst[1].nome = "STR";
+    tabelaInst[2].codigo = 2;
+    tabelaInst[2].nome = "ADD";
+    tabelaInst[3].codigo = 3;
+    tabelaInst[3].nome = "MUL";
+    tabelaInst[4].codigo = 4;
+    tabelaInst[4].nome = "DIV";
+    tabelaInst[5].codigo = 5;
+    tabelaInst[5].nome = "SUB";
+    tabelaInst[6].codigo = 6;
+    tabelaInst[6].nome = "JMP";
+    tabelaInst[7].codigo = 7;
+    tabelaInst[7].nome = "JEQ";
+    tabelaInst[8].codigo = 8;
+    tabelaInst[8].nome = "JGT";
+    tabelaInst[9].codigo = 9;
+    tabelaInst[9].nome = "JLT";
+    tabelaInst[10].codigo = 10;
+    tabelaInst[10].nome = "PW";
+    tabelaInst[11].codigo = 11;
+    tabelaInst[11].nome = "RW";
+    tabelaInst[12].codigo = 12;
+    tabelaInst[12].nome = "STOP";
+}
 bool verifica_se_eh_inst(string string)
 {
     for(int i = 0; i < 13; i++)
@@ -282,40 +329,3 @@ void segunda_passagem()
 {
     gerar_codigo();
 }
-
-
-int main(int argc, char *argv[])
-{
-    tabelaInst[0].codigo = 0;
-    tabelaInst[0].nome = "LDR";
-    tabelaInst[1].codigo = 1;
-    tabelaInst[1].nome = "STR";
-    tabelaInst[2].codigo = 2;
-    tabelaInst[2].nome = "ADD";
-    tabelaInst[3].codigo = 3;
-    tabelaInst[3].nome = "MUL";
-    tabelaInst[4].codigo = 4;
-    tabelaInst[4].nome = "DIV";
-    tabelaInst[5].codigo = 5;
-    tabelaInst[5].nome = "SUB";
-    tabelaInst[6].codigo = 6;
-    tabelaInst[6].nome = "JMP";
-    tabelaInst[7].codigo = 7;
-    tabelaInst[7].nome = "JEQ";
-    tabelaInst[8].codigo = 8;
-    tabelaInst[8].nome = "JGT";
-    tabelaInst[9].codigo = 9;
-    tabelaInst[9].nome = "JLT";
-    tabelaInst[10].codigo = 10;
-    tabelaInst[10].nome = "PW";
-    tabelaInst[11].codigo = 11;
-    tabelaInst[11].nome = "RW";
-    tabelaInst[12].codigo = 12;
-    tabelaInst[12].nome = "STOP";
-
-    primeira_passagem();
-    segunda_passagem();
-
-    return 0;
-}
-
