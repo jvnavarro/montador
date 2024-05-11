@@ -63,18 +63,31 @@
         |     ...   |      ...      |       ...     |
         |_____127___|_______________|_______________|
 */  
-
 #include <stdio.h>
-#include <stdlib.h>
-#define STOP 12
+#include <iostream>
+#include <string>
+#include <cstdio>
+#include <string.h>
+#include <fstream>
+#include <sstream>
 
+#define STOP 12
+using namespace std;
 typedef struct mem
 {
     int operador;
     int operando;
 } mem;
 
-int R1;
+typedef struct tabelaInstrucoes
+{
+    int codigo;
+    string nome;
+}tipoTabelaInstrucoes;
+
+tipoTabelaInstrucoes tabelaInst[13];
+
+int R1, tamAreaDados;
 
 // rocketseat
 
@@ -88,6 +101,7 @@ void loader(mem memoria[], int* ptrPC)
 
     fscanf(f, "%d %d\n", &i, &j);
     *ptrPC = i;
+    tamAreaDados = i;
 
     while (!feof(f))
     {
@@ -103,8 +117,22 @@ void CPU(mem memoria[], int* ptrPC)
     int R0 = *ptrPC;
     while(memoria[*ptrPC].operador != STOP)
     {
-        printf("PC: %d\nACC: %d\nOperador: %d\nOperando: %d\n", *ptrPC, ACC, memoria[*ptrPC].operador, memoria[*ptrPC].operando);
-        printf("addrs 0: var1 = %d\naddrs 1: var2 = %d\naddrs 2: var3 = %d\n\n", memoria[0].operando, memoria[1].operando, memoria[2].operando);
+        printf("PC: %d\nACC: %d\nOpdr.: %d\t|\tOpnd.: %d\n", *ptrPC, ACC, memoria[*ptrPC].operador, memoria[*ptrPC].operando);
+         // Procurando o nome da instrução na tabela de instruções
+        if(memoria[*ptrPC].operador >= 0 && memoria[*ptrPC].operador <= 12)
+        {
+            cout << "Opdr.: " << tabelaInst[memoria[*ptrPC].operador].nome << "\t|\tOpnd.: " << memoria[*ptrPC].operando << "\n";
+        }
+        else
+        {
+            cout << "Código de instrução inválido\n";
+        }
+        printf("Area de Dados:\n");
+        for(int i = 0; i < tamAreaDados; i++)
+        {
+            printf("|\taddr. %.3d \t|\toptr: %d \t|\topnd: %d \t|\n", i, memoria[i].operador, memoria[i].operando);
+        }
+        //printf("addrs 0: var1 = %d\naddrs 1: var2 = %d\naddrs 2: var3 = %d\n\n", memoria[0].operando, memoria[1].operando, memoria[2].operando);
         switch(memoria[*ptrPC].operador)
         {
             case 0:
@@ -177,6 +205,14 @@ void CPU(mem memoria[], int* ptrPC)
         }
     }
 }
+void print_mem(mem mem[])
+{
+    printf("|\taddr:\t|\tOpdr:\t|\tOpnd:\t|\n");
+    for(int i = 0; i < 128; i++)
+    {
+        printf("|\t%d\t|\t%d\t|\t%d\t\n", i, mem[i].operador, mem[i].operando);
+    }
+}
 int main()
 {
     //ptrPC pra usar nas duas funções
@@ -184,8 +220,40 @@ int main()
     int memDados;
     int PC = 0;
 
+    tabelaInst[0].codigo = 0;
+    tabelaInst[0].nome = "LDR";
+    tabelaInst[1].codigo = 1;
+    tabelaInst[1].nome = "STR";
+    tabelaInst[2].codigo = 2;
+    tabelaInst[2].nome = "ADD";
+    tabelaInst[3].codigo = 3;
+    tabelaInst[3].nome = "MUL";
+    tabelaInst[4].codigo = 4;
+    tabelaInst[4].nome = "DIV";
+    tabelaInst[5].codigo = 5;
+    tabelaInst[5].nome = "SUB";
+    tabelaInst[6].codigo = 6;
+    tabelaInst[6].nome = "JMP";
+    tabelaInst[7].codigo = 7;
+    tabelaInst[7].nome = "JEQ";
+    tabelaInst[8].codigo = 8;
+    tabelaInst[8].nome = "JGT";
+    tabelaInst[9].codigo = 9;
+    tabelaInst[9].nome = "JLT";
+    tabelaInst[10].codigo = 10;
+    tabelaInst[10].nome = "PW";
+    tabelaInst[11].codigo = 11;
+    tabelaInst[11].nome = "RW";
+    tabelaInst[12].codigo = 12;
+    tabelaInst[12].nome = "STOP";
 
     loader(memoria, &PC);
+    for(int i = 0; i < tamAreaDados; i++)
+    {
+        memoria[i].operador = 0;
+        memoria[i].operando = 0;
+    }
+    print_mem(memoria);
     CPU(memoria, &PC);
     //printf("O valor armazenado na var = %d", memoria[0].operando);
     }

@@ -45,7 +45,7 @@ typedef struct tabelaInstrucoes
 
 tipoTabelaInstrucoes tabelaInst[13];
 tipoTabelaSimbolos tabelaSimbolos[50];
-int contadorAreaDados = 0, contadorIndiceTabSimbolos = 0;
+int contadorAreaDados = 0, contadorIndiceTabSimbolos = 0, contadorNumVariaveis = 0;
 
 bool verifica_se_eh_inst(string string)
 {
@@ -148,24 +148,16 @@ void construir_tabela()
         linha_lida_stream_count.str(string(linha));
 
         linha_lida_stream >> token1 >> token2 >> token3;
-
-        cout << "token1: " << token1 << "\n";
-        cout << "token2: " << token2 << "\n";
-        cout << "token3: " << token3 << "\n";
         while (linha_lida_stream_count >> token) // Enquanto houver tokens para serem lidos
-        {
             contadorTokens++; // Incrementa o contador de tokens
-        }
+        
         if(contadorTokens < 3)
-        {
             leuInst = true;
-        }
         if((leuInst == true) && (contadorAreaDados == 0))
         {   
             cout << "Erro: nenhuma variavel foi declarada.\n";
             return;
         }
-        //if((leuInst == true) && (contadorTokens == 3))
         cout << "contadorTokens: " << contadorTokens << "\n";
         
         int n = contadorTokens;
@@ -200,10 +192,12 @@ void construir_tabela()
                             tabelaSimbolos[contadorIndiceTabSimbolos].endereco = contadorEndAtual;
                             tabelaSimbolos[contadorIndiceTabSimbolos].nome = token1;
                             contadorIndiceTabSimbolos++;
+                            contadorEndAtual++;
                         }
                         else
                         {
                             int espacoVar = stoi(token3);
+                            contadorNumVariaveis++;
                             for(int i = 0; i < espacoVar; i++)
                             {
                                 tabelaSimbolos[contadorAreaDados].endereco = contadorAreaDados;
@@ -216,12 +210,14 @@ void construir_tabela()
                         //contadorIndiceTabSimbolos++;
                         cout << "contadorAreaDados: " << contadorAreaDados << "\n";
                         cout << "contadorIndiceTabSimbolos: " << contadorIndiceTabSimbolos << "\n";
+                        
                     }
                 }
                 break;
             default:
                 break;
         }
+        cout << "contadorEndAtual: " << contadorEndAtual << "\n";
     }
     leitura.close();
 }
@@ -249,16 +245,13 @@ void gerar_codigo()
         cout << linha << "\n";
         linha_lida_stream.str(string(linha)); // Define o conteúdo do stringstream como a nova linha
 
-        if (i < contadorAreaDados) 
+        if (i < contadorNumVariaveis) 
         {
             i++;
             continue; // Isso pulará para a próxima iteração do loop
         }
         linha_lida_stream >> token1 >> token2 >> token3;
         
-        cout << "token1: " << token1 << "\n";
-        cout << "token2: " << token2 << "\n";
-        cout << "token3: " << token3 << "\n";
         if(verifica_se_eh_inst(token1) == false)
         {
             codigoInst = retorna_codigo_inst(token2);

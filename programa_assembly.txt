@@ -1,6 +1,6 @@
-num1 SPACE 1
-num2 SPACE 1
-num3 SPACE 1
+num1 SPACE 2
+num2 SPACE 2
+num3 SPACE 2
 loop1 RW num1
 RW num2
 LDR num1
