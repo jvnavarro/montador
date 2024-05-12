@@ -1,6 +1,7 @@
 num1 SPACE 2
 num2 SPACE 2
 num3 SPACE 2
+num4 SPACE 3
 loop1 RW num1
 RW num2
 LDR num1
@@ -29,5 +30,6 @@ LDR num1
 SUB num2 
 STR num3 
 PW num3
+PW num4
 JLT loop4 
 STOP 

@@ -42,20 +42,32 @@ typedef struct tabelaInstrucoes
     string nome;
 }tipoTabelaInstrucoes;
 //Variaveis globais
-tipoTabelaInstrucoes tabelaInst[13];
-tipoTabelaSimbolos tabelaSimbolos[50];
-int contadorAreaDados = 0, contadorIndiceTabSimbolos = 0, contadorNumVariaveis = 0;
+    tipoTabelaInstrucoes tabelaInst[13];
+    tipoTabelaSimbolos tabelaSimbolos[50];
+
+    int contadorAreaDados = 0;
+    int contadorIndiceTabSimbolos = 0; 
+    int contadorNumVariaveis = 0;
+    int contadorEndAtual = 0;
+    bool leuVariavelOuLabel = false;
+    bool leuInst = false;
+    bool numeroIndevidoTokens = false;
+
 bool verifica_se_eh_inst(string string);
 void print_tabela_simbolos();
 void escrever_arq(int codigo, int end);
 int retorna_end_var(string string);
 int retorna_codigo_inst(string string);
 bool verifica_var_ja_existe(string string);
-void construir_tabela();
+void construir_tabela_simbolos();
 void gerar_codigo();
 void primeira_passagem();
 void segunda_passagem();
 void carrega_tabela_inst();
+bool checa_decl_var_lugar_errado(string token2);
+void atribuicao_flags(int contadorTokens);
+void insercao_tabela_simbolos(int contadorTokens, string token1, string token2, string token3);
+void retorna_codigo_end_e_inst(int* codigoInst, int* endVar, string token1, string token2, string token3);
 int main(int argc, char *argv[])
 {
 
@@ -65,6 +77,7 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
 void carrega_tabela_inst()
 {
     tabelaInst[0].codigo = 0;
@@ -151,8 +164,6 @@ int retorna_codigo_inst(string string)
         if(tabelaInst[i].nome == string)
             return tabelaInst[i].codigo;
     }
-    cout << "Erro: o codigo de operacao nao existe.\n";
-    cout << string;
     return -1;
 }
 bool verifica_var_ja_existe(string string)
@@ -168,16 +179,69 @@ bool verifica_var_ja_existe(string string)
     }
     return false;
 }
-void construir_tabela()
+void atribuicao_flags(int contadorTokens)
+{
+    if(contadorTokens < 3)
+            leuInst = true;
+    else
+        leuVariavelOuLabel = true;
+    switch(contadorTokens)
+    {
+        case 1: leuInst = true;
+            break;
+        case 2: leuInst = true;
+            break;
+        case 3: leuVariavelOuLabel = true;
+            break;
+        default: numeroIndevidoTokens = true;
+            break;
+    }
+}
+void insercao_tabela_simbolos(int contadorTokens, string token1, string token2, string token3)
+{
+    switch (contadorTokens)
+    {
+        case 1:
+            contadorEndAtual++;
+            break;
+        case 2:
+            contadorEndAtual++;
+            break;
+        case 3:
+            //se ler uma instrucao e vier pro case 3, quer dizer
+            //que uma variavel foi declarada no meio da parte de codigo
+            // ou entao uma label foi adicionada a uma inst.
+            if(verifica_se_eh_inst(token2) == true)
+            {
+                tabelaSimbolos[contadorIndiceTabSimbolos].endereco = contadorEndAtual;
+                tabelaSimbolos[contadorIndiceTabSimbolos].nome = token1;
+                contadorIndiceTabSimbolos++;
+                contadorEndAtual++;
+            }
+            else
+            {
+                int espacoVar = stoi(token3);
+                contadorNumVariaveis++;
+                for(int i = 0; i < espacoVar; i++)
+                {
+                    tabelaSimbolos[contadorAreaDados].endereco = contadorAreaDados;
+                    tabelaSimbolos[contadorAreaDados].nome = token1;
+                    contadorAreaDados++;
+                    contadorIndiceTabSimbolos++;
+                    contadorEndAtual++;
+                }
+            }      
+            break;
+        default:
+            break;
+    }
+}
+void construir_tabela_simbolos()
 {
     char linha[300];
     string token1, token2, token3, token;
-    int contadorEndAtual = 0;
-    bool leuInst = false;
 
     ifstream leitura;
-
-    cout << "Construcao da Tabela\n\n";
 
     leitura.open("programa_assembly.txt");
     if (!leitura.is_open())
@@ -190,95 +254,68 @@ void construir_tabela()
         stringstream linha_lida_stream(linha), linha_lida_stream_count(linha);
         int contadorTokens = 0;
 
-        cout << linha << "\n";
         linha_lida_stream.str(string(linha)); // Define o conteúdo do stringstream como a nova linha
         linha_lida_stream_count.str(string(linha));
 
         linha_lida_stream >> token1 >> token2 >> token3;
         while (linha_lida_stream_count >> token) // Enquanto houver tokens para serem lidos
-            contadorTokens++; // Incrementa o contador de tokens
-        
-        if(contadorTokens < 3)
-            leuInst = true;
-        if((leuInst == true) && (contadorAreaDados == 0))
-        {   
-            cout << "Erro: nenhuma variavel foi declarada.\n";
+            contadorTokens++;
+        atribuicao_flags(contadorTokens);
+        //Erro variavel redeclarada
+        if((leuInst == false) && (verifica_var_ja_existe(token1) == true))
+        {
+            cout << "Uma variavel com este nome: " << token1 << " Jah existe.\n";
             return;
         }
-        cout << "contadorTokens: " << contadorTokens << "\n";
-        
-        int n = contadorTokens;
-        switch (n)
-        {
-            case 1:
-                contadorEndAtual++;
-                break;
-            case 2:
-                contadorEndAtual++;
-                break;
-            case 3:
-                //se ler uma instrucao e vier pro case 3, quer dizer
-                //que uma variavel foi declarada no meio da parte de codigo
-                // ou entao uma label foi adicionada a uma inst.
-                if((leuInst == true) && (token2 == "SPACE"))
-                {
-                    cout << "Erro: variavel declarada no local errado.\n";
-                    return;
-                }
-                else
-                {   
-                    if(verifica_var_ja_existe(token1) == true)
-                    {   
-                        cout << "Uma variavel com este nome: " << token1 << " Jah existe.\n";
-                        return;
-                    }
-                    else
-                    {
-                        if(verifica_se_eh_inst(token2) == true)
-                        {
-                            tabelaSimbolos[contadorIndiceTabSimbolos].endereco = contadorEndAtual;
-                            tabelaSimbolos[contadorIndiceTabSimbolos].nome = token1;
-                            contadorIndiceTabSimbolos++;
-                            contadorEndAtual++;
-                        }
-                        else
-                        {
-                            int espacoVar = stoi(token3);
-                            contadorNumVariaveis++;
-                            for(int i = 0; i < espacoVar; i++)
-                            {
-                                tabelaSimbolos[contadorAreaDados].endereco = contadorAreaDados;
-                                tabelaSimbolos[contadorAreaDados].nome = token1;
-                                contadorAreaDados++;
-                                contadorIndiceTabSimbolos++;
-                                contadorEndAtual++;
-                            }
-                        }
-                        //contadorIndiceTabSimbolos++;
-                        cout << "contadorAreaDados: " << contadorAreaDados << "\n";
-                        cout << "contadorIndiceTabSimbolos: " << contadorIndiceTabSimbolos << "\n";
-                        
-                    }
-                }
-                break;
-            default:
-                break;
+        //Erro variavel declarada no local errado
+        if((leuInst == true) && (checa_decl_var_lugar_errado(token2) == true))
+        {   
+            cout << "Erro: Variavel declarada em local indevido.\n";
+            return;
         }
-        cout << "contadorEndAtual: " << contadorEndAtual << "\n";
+        //Erro linha + de 3 tokens
+        if(numeroIndevidoTokens == true)
+        {
+            cout << "O montador nao permite linhas com mais de 3 tokens.\n";
+            return;
+        }
+        insercao_tabela_simbolos(contadorTokens, token1, token2, token3);
+        
     }
     leitura.close();
+}
+bool checa_decl_var_lugar_errado(string token2)
+{
+    string espaco = "SPACE";
+    if(token2 == espaco)
+        return true;
+    else
+        return false;
+}
+void retorna_codigo_end_e_inst(int* codigoInst, int* endVar, string token1, string token2, string token3)
+{
+    //Tem label
+    if(verifica_se_eh_inst(token1) == false)
+    {
+        *codigoInst = retorna_codigo_inst(token2);
+        *endVar = retorna_end_var(token3);
+    }
+    //Não tem label
+    else
+    {
+        *codigoInst = retorna_codigo_inst(token1);
+        *endVar = retorna_end_var(token2);
+    }
 }
 void gerar_codigo()
 {
     char linha[300];
     string token1, token2, token3, token;
-    int codigoInst, endVar, i=0;
+    int codigoInst, endVar, i=0, contadorTokens = 0;
     bool leuInst = false;
 
     ifstream leitura;
 
-    cout << "Geracao do Codigo\n\n";
-    cout << "contadorAreaDados: " << contadorAreaDados << "\n";
     leitura.open("programa_assembly.txt");
     if (!leitura.is_open())
     {
@@ -287,7 +324,7 @@ void gerar_codigo()
     }
     while (leitura.getline(linha, 300))
     {
-        stringstream linha_lida_stream(linha);
+        stringstream linha_lida_stream(linha), linha_lida_stream_count(linha);
 
         cout << linha << "\n";
         linha_lida_stream.str(string(linha)); // Define o conteúdo do stringstream como a nova linha
@@ -297,31 +334,27 @@ void gerar_codigo()
             i++;
             continue; // Isso pulará para a próxima iteração do loop
         }
+        
         linha_lida_stream >> token1 >> token2 >> token3;
         
-        if(verifica_se_eh_inst(token1) == false)
-        {
-            codigoInst = retorna_codigo_inst(token2);
-            endVar = retorna_end_var(token3);
-        }
-        else
-        {
-            codigoInst = retorna_codigo_inst(token1);
-            endVar = retorna_end_var(token2);
-        }
+        retorna_codigo_end_e_inst(&codigoInst, &endVar, token1, token2, token3);
         if(codigoInst == -1)
+        {
+            cout << "Erro: a instrucao inserida nao existe na tabela de instrucoes.\n";
             return;
+        }
         if(endVar == -1)
+        {
+            cout << "Erro: o endereco inserido eh negativo ou nao existe na tabela de simbolos.\n";
             return;
+        }    
         escrever_arq(codigoInst, endVar);
-
-
     }
     leitura.close();
 }
 void primeira_passagem()
 {
-    construir_tabela();
+    construir_tabela_simbolos();
     escrever_arq(contadorAreaDados, 00);
     print_tabela_simbolos();
 }
