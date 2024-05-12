@@ -30,7 +30,7 @@ using namespace std;
                 -codigo de operacao inexistente
 
 */
-
+//Structs
 typedef struct tabelaSimbolos
 {
     int endereco;
@@ -41,10 +41,10 @@ typedef struct tabelaInstrucoes
     int codigo;
     string nome;
 }tipoTabelaInstrucoes;
+
 //Variaveis globais
     tipoTabelaInstrucoes tabelaInst[13];
     tipoTabelaSimbolos tabelaSimbolos[50];
-
     int contadorAreaDados = 0;
     int contadorIndiceTabSimbolos = 0; 
     int contadorNumVariaveis = 0;
@@ -52,32 +52,34 @@ typedef struct tabelaInstrucoes
     bool leuVariavelOuLabel = false;
     bool leuInst = false;
     bool numeroIndevidoTokens = false;
-
-bool verifica_se_eh_inst(string string);
-void print_tabela_simbolos();
+// Outras
+void carrega_tabela_inst();
 void escrever_arq(int codigo, int end);
+void print_tabela_simbolos();
+// F
+bool verifica_se_eh_inst(string string);
+void insercao_tabela_simbolos(int contadorTokens, string token1, string token2, string token3);
+bool checa_decl_var_lugar_errado(string token2);
+bool verifica_var_ja_existe(string string);
+void atribuicao_flags(int contadorTokens);
+void construir_tabela_simbolos();
+void primeira_passagem();
+// Funções usadas na segunda passagem
 int retorna_end_var(string string);
 int retorna_codigo_inst(string string);
-bool verifica_var_ja_existe(string string);
-void construir_tabela_simbolos();
-void gerar_codigo();
-void primeira_passagem();
-void segunda_passagem();
-void carrega_tabela_inst();
-bool checa_decl_var_lugar_errado(string token2);
-void atribuicao_flags(int contadorTokens);
-void insercao_tabela_simbolos(int contadorTokens, string token1, string token2, string token3);
 void retorna_codigo_end_e_inst(int* codigoInst, int* endVar, string token1, string token2, string token3);
+void gerar_codigo();
+void segunda_passagem();
+
 int main(int argc, char *argv[])
 {
-
     carrega_tabela_inst();
     primeira_passagem();
     segunda_passagem();
 
     return 0;
 }
-
+// Outras
 void carrega_tabela_inst()
 {
     tabelaInst[0].codigo = 0;
@@ -107,24 +109,6 @@ void carrega_tabela_inst()
     tabelaInst[12].codigo = 12;
     tabelaInst[12].nome = "STOP";
 }
-bool verifica_se_eh_inst(string string)
-{
-    for(int i = 0; i < 13; i++)
-    {
-        if(string == tabelaInst[i].nome)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-void print_tabela_simbolos()
-{
-    for(int i = 0; i < 50; i++)
-    {
-        cout << "nome: " << tabelaSimbolos[i].nome << "\tendereco: " << tabelaSimbolos[i].endereco << "\n"; 
-    }
-}
 void escrever_arq(int codigo, int end)
 {
     ofstream escrita;
@@ -144,58 +128,24 @@ void escrever_arq(int codigo, int end)
     }
     escrita.close();
 }
-int retorna_end_var(string string)
+void print_tabela_simbolos()
 {
     for(int i = 0; i < 50; i++)
     {
-        if(tabelaSimbolos[i].nome == string)
-            return tabelaSimbolos[i].endereco;
+        cout << "nome: " << tabelaSimbolos[i].nome << "\tendereco: " << tabelaSimbolos[i].endereco << "\n"; 
     }
-    if(stoi(string) > 0)
-        return stoi(string);
-    cout << "Erro: variavel nao existe na tabela de simbolos.\n";
-    return -1;
 }
-int retorna_codigo_inst(string string)
+// Funções usadas na primeira passagem
+bool verifica_se_eh_inst(string string)
 {
     for(int i = 0; i < 13; i++)
     {
-        
-        if(tabelaInst[i].nome == string)
-            return tabelaInst[i].codigo;
-    }
-    return -1;
-}
-bool verifica_var_ja_existe(string string)
-{
-    int i = 0;
-    for(i; i < 50; i++)
-    {
-        if(string == tabelaSimbolos[i].nome)
+        if(string == tabelaInst[i].nome)
         {
-            cout << "Erro: a variavel"<< string << " ja foi declarada anteriormente\n";
             return true;
         }
     }
     return false;
-}
-void atribuicao_flags(int contadorTokens)
-{
-    if(contadorTokens < 3)
-            leuInst = true;
-    else
-        leuVariavelOuLabel = true;
-    switch(contadorTokens)
-    {
-        case 1: leuInst = true;
-            break;
-        case 2: leuInst = true;
-            break;
-        case 3: leuVariavelOuLabel = true;
-            break;
-        default: numeroIndevidoTokens = true;
-            break;
-    }
 }
 void insercao_tabela_simbolos(int contadorTokens, string token1, string token2, string token3)
 {
@@ -233,6 +183,41 @@ void insercao_tabela_simbolos(int contadorTokens, string token1, string token2, 
             }      
             break;
         default:
+            break;
+    }
+}
+bool checa_decl_var_lugar_errado(string token2)
+{
+    string espaco = "SPACE";
+    if(token2 == espaco)
+        return true;
+    else
+        return false;
+}
+bool verifica_var_ja_existe(string string)
+{
+    int i = 0;
+    for(i; i < 50; i++)
+    {
+        if(string == tabelaSimbolos[i].nome)
+        {
+            cout << "Erro: a variavel"<< string << " ja foi declarada anteriormente\n";
+            return true;
+        }
+    }
+    return false;
+}
+void atribuicao_flags(int contadorTokens)
+{
+    switch(contadorTokens)
+    {
+        case 1: leuInst = true;
+            break;
+        case 2: leuInst = true;
+            break;
+        case 3: leuVariavelOuLabel = true;
+            break;
+        default: numeroIndevidoTokens = true;
             break;
     }
 }
@@ -280,17 +265,37 @@ void construir_tabela_simbolos()
             return;
         }
         insercao_tabela_simbolos(contadorTokens, token1, token2, token3);
-        
     }
     leitura.close();
 }
-bool checa_decl_var_lugar_errado(string token2)
+void primeira_passagem()
 {
-    string espaco = "SPACE";
-    if(token2 == espaco)
-        return true;
-    else
-        return false;
+    construir_tabela_simbolos();
+    escrever_arq(contadorAreaDados, 00);
+    print_tabela_simbolos();
+}
+// Funções usadas na segunda passagem
+int retorna_end_var(string string)
+{
+    for(int i = 0; i < 50; i++)
+    {
+        if(tabelaSimbolos[i].nome == string)
+            return tabelaSimbolos[i].endereco;
+    }
+    if(stoi(string) > 0)
+        return stoi(string);
+    cout << "Erro: variavel nao existe na tabela de simbolos.\n";
+    return -1;
+}
+int retorna_codigo_inst(string string)
+{
+    for(int i = 0; i < 13; i++)
+    {
+        
+        if(tabelaInst[i].nome == string)
+            return tabelaInst[i].codigo;
+    }
+    return -1;
 }
 void retorna_codigo_end_e_inst(int* codigoInst, int* endVar, string token1, string token2, string token3)
 {
@@ -351,12 +356,6 @@ void gerar_codigo()
         escrever_arq(codigoInst, endVar);
     }
     leitura.close();
-}
-void primeira_passagem()
-{
-    construir_tabela_simbolos();
-    escrever_arq(contadorAreaDados, 00);
-    print_tabela_simbolos();
 }
 void segunda_passagem()
 {
